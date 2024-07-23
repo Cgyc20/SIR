@@ -15,7 +15,7 @@ def ODE(S_value, I_value, t_value, dt, threshold):
     
 
 
-    while t_value < T and I_value >= threshold:
+    while t_value < T and I_value >= threshold-1:
         # if I_value <= threshold+1:
         #     break  # Stop the simulation if the threshold is reached
     
@@ -53,7 +53,8 @@ def gillespie(S_value, I_value, t_value, threshold):
 
    
 
-    while I < threshold and t < T:
+    while t < T:
+
         r1 = random.uniform(0, 1)
         r2 = random.uniform(0, 1)
 
@@ -98,17 +99,26 @@ threshold = 80
 
 S_list_1, I_list_1, t_list_1 = gillespie(S0, I0, t_value, threshold)
 
-S0 = S_list_1[-1]
-I0 = I_list_1[-1]
-t_value = t_list_1[-1]
+for i, elements in enumerate(I_list_1):
+    if elements >= threshold:
+        index_value = i
+        break
+print(index_value)
 
+S_list_restricted = S_list_1[:index_value]
+I_list_restricted = I_list_1[:index_value]
+t_list_restricted = t_list_1[:index_value]
+
+
+S0 = S_list_restricted[-1]
+I0 = I_list_restricted[-1]
+t_value = t_list_restricted[-1]
+print(I0)
 
 length_orig = len(S_list_1)
 # Perform ODE simulation starting from the end of the Gillespie simulation
 S_list_new, I_list_1_new, t_list_1_new = ODE(S0, I0, t_value, dt, threshold)
 
-
-print(I_list_1_new[-1])
 S_list_2, I_list_2, t_list_2 = gillespie(S_list_new[-1], I_list_1_new[-1], t_list_1_new[-1], threshold)
 
 # Plot the results
