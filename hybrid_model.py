@@ -11,9 +11,9 @@ CI_0 = 0
 k1 = 0.002
 k2 = 0.1
 dt = 0.001
-tf = 30
-T1 = 300
-gamma = 0.5
+tf = 15
+T1 = 200
+gamma = 0.1
 number_molecules = 4
 
 num_points = int(tf / dt) + 1  # Number of time points in the simulation
@@ -51,6 +51,7 @@ def compute_propensities(states):
     alpha_2 = k1*CS*DI
     alpha_3 = k2*DI
 
+    ### Found a bug (I was taking entire vector sum)
     alpha_bS = gamma * CS if CS+DS <= T1 else 0# Continious S to discrete S
 
     alpha_bI = gamma * CI if CI+DI  <= T1 else 0 # Cont I to Discrete I
@@ -172,16 +173,17 @@ for i in tqdm.tqdm(range(total_simulations)):
 #Now we want to divide the elements by the total number of simulations
 data_table_cum /= total_simulations 
 
-combined[:,0] = data_table_cum[:,0] + data_table_cum[:,2]
-combined[:,1] = data_table_cum[:,1] + data_table_cum[:,3]
+combined[:,0] = data_table_cum[:,0] + data_table_cum[:,2] #The S
+combined[:,1] = data_table_cum[:,1] + data_table_cum[:,3] #The I
 
 
 threshold = np.ones(num_points)*T1
 
 
 plt.figure()
-plt.plot(timegrid, data_table_cum[:, 1], label='DI')
-plt.plot(timegrid, data_table_cum[:, 3], label='CI')
+plt.plot(timegrid, data_table_cum[:, 1], label='$D_I$')
+plt.plot(timegrid, data_table_cum[:, 3], label='$C_I$')
+plt.plot(timegrid,combined[:,1],label = '$C_I+D_I$')
 plt.legend()
 plt.show()
 
