@@ -10,10 +10,10 @@ CS_0 = 0
 CI_0 = 0
 k1 = 0.002
 k2 = 0.1
-dt = 0.01
+dt = 0.1
 tf = 30
-T1 = 10
-gamma = 1
+T1 = 100
+gamma = 0.5
 number_molecules = 4
 
 num_points = int(tf / dt) + 1  # Number of time points in the simulation
@@ -42,7 +42,7 @@ S_matrix = np.array([[-1,1,0,0],
                      [0,1,0,-1],
                      [-1,0,1,0],
                      [0,-1,0,1],
-                     [-1,2,0,-1]],dtype=float)
+                     [-1,2,0,-1]],dtype=int)
 
 """FORWARD IS FROM DISCRETE TO CONTINIOUS"""
 def compute_propensities(states):
@@ -115,7 +115,7 @@ def update_ode(states):
     def differential(S,I): 
         """Note these must be continious version of particles"""
         DsDt = -k1*S*I
-        DiDt = -k1*S*I-k2*I
+        DiDt = k1*S*I-k2*I
         return DsDt, DiDt
         """Differential calculation"""
 
@@ -129,7 +129,9 @@ def update_ode(states):
         return S + (P1[0]+2*P2[0]+2*P3[0]+P4[0])*dt/6, I + (P1[1]+2*P2[1]+2*P3[1]+P4[1])*dt/6
     
     #Now return these states again
-    states[2],states[3] = RK4(states)
+    rk4_result = RK4(states)
+    states[2] = max(rk4_result[0], 0)
+    states[3] = max(rk4_result[1], 0)
 
     return states
 
@@ -186,7 +188,7 @@ def run_simulation(num_points):
     return data_table
 
 
-total_simulations = 1
+total_simulations = 100
 
 for i in tqdm.tqdm(range(total_simulations)):
     data_table_cum += run_simulation(num_points)
