@@ -11,7 +11,7 @@ CI_0 = 0
 k1 = 0.002
 k2 = 0.1
 dt = 0.001
-tf = 15
+tf = 30
 T1 = 200
 gamma = 0.1
 number_molecules = 4
@@ -108,8 +108,26 @@ def update_ode(states):
     DS/Dt = -K_1*S*I
     DI/Dt = -K_1*S*I-K_2*I
     """    
-    states[2] = max(states[2] - dt * k1 * states[2] * states[3], 0)  # Update discrete susceptible
-    states[3] = max(states[3] - dt *( k1 * states[2]*states[3]-k2*states[3]), 0)  # Update continuous molecules
+
+    def differential(S,I): 
+        """Note these must be continious version of particles"""
+        DsDt = -k1*S*I
+        DiDt = -k1*S*I-k2*I
+        return DsDt, DiDt
+        """Differential calculation"""
+
+    def RK4(states):
+        _,_,S,I = states
+        """RK4 Approximation of next time step"""
+        P1 = differential(S,I)
+        P2 = differential(S+P1[0]*dt/2,I+P1[1]*dt/2)
+        P3 = differential(S+P2[0]*dt/2,I+P2[1]*dt/2)
+        P4 = differential(S+P3[0]*dt,I+P3[1]*dt)
+        return S + (P1[0]+2*P2[0]+2*P3[0]+P4[0])*dt/6, I + (P1[1]+2*P2[1]+2*P3[1]+P4[1])*dt/6
+    
+    #Now return these states again
+    states[2],states[3] = RK4(states)
+
     return states
 
 t = 0  # Initial time
