@@ -51,13 +51,13 @@ def compute_propensities(states):
     alpha_2 = k1*CS*DI
     alpha_3 = k2*DI
 
-    alpha_bS = gamma * CS if states.sum() <= T1 else 0# Continious S to discrete S
+    alpha_bS = gamma * CS if CS+DS <= T1 else 0# Continious S to discrete S
 
-    alpha_bI = gamma * CI if states.sum()  <= T1 else 0 # Cont I to Discrete I
+    alpha_bI = gamma * CI if CI+DI  <= T1 else 0 # Cont I to Discrete I
 
-    alpha_fS = gamma * DS if states.sum() > T1 else 0# Discrete S to continous S
+    alpha_fS = gamma * DS if  CS+DS > T1 else 0# Discrete S to continous S
     
-    alpha_fI = gamma * DI if states.sum() >T1 else 0 # Discrete I to Cont I
+    alpha_fI = gamma * DI if CI+DI >T1 else 0 # Discrete I to Cont I
     
 
     return np.array([alpha_1,alpha_2,alpha_3,alpha_bS,alpha_bI,alpha_fS,alpha_fI])
