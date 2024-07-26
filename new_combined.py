@@ -14,7 +14,6 @@ def ODE(S_value, I_value, t_value, dt, threshold):
     I_list = [I_value]
     
 
-
     while t_value < T and I_value >= threshold-1:
         # if I_value <= threshold+1:
         #     break  # Stop the simulation if the threshold is reached
@@ -43,7 +42,9 @@ def propensity(S, I):
 
 stoich = np.array([(-1, 1), (0, -1)])  # Stoichiometry matrix
 
-def gillespie(S_value, I_value, t_value, threshold):
+def gillespie(S_value, I_value, t_value,threshold):
+    """This uses the Gillespie algorithm to model the system:
+    """
     I = I_value
     S = S_value
     t = t_value
@@ -51,8 +52,7 @@ def gillespie(S_value, I_value, t_value, threshold):
     S_list = [S_value]
     t_list = [t_value]
 
-   
-
+    #Can add another condition to only run up to this threshold value
     while t < T:
 
         r1 = random.uniform(0, 1)
@@ -123,9 +123,9 @@ S_list_2, I_list_2, t_list_2 = gillespie(S_list_new[-1], I_list_1_new[-1], t_lis
 
 # Plot the results
 plt.figure()
-plt.step(t_list_1,I_list_1, where='post', label='Stochastic Simulation')
-plt.plot(t_list_1_new,I_list_1_new,label='ODE')
-plt.step(t_list_2,I_list_2, where='post', label='Stochastic Simulation')
+plt.step(t_list_1,I_list_1, where='post', label='Stochastic Simulation',linestyle = '--')
+plt.plot(t_list_1_new,I_list_1_new,label='ODE',color = 'red')
+plt.step(t_list_2,I_list_2, where='post', label='Stochastic Simulation', color = 'red',linestyle = '--')
 
 plt.xlabel('Time')
 plt.ylabel('Infected Population')
