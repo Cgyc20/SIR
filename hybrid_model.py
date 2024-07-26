@@ -10,10 +10,10 @@ CS_0 = 0
 CI_0 = 0
 k1 = 0.002
 k2 = 0.1
-dt = 0.001
+dt = 0.01
 tf = 30
-T1 = 200
-gamma = 0.1
+T1 = 10
+gamma = 1
 number_molecules = 4
 
 num_points = int(tf / dt) + 1  # Number of time points in the simulation
@@ -41,7 +41,8 @@ S_matrix = np.array([[-1,1,0,0],
                      [1,0,-1,0],
                      [0,1,0,-1],
                      [-1,0,1,0],
-                     [0,-1,0,1]],dtype=float)
+                     [0,-1,0,1],
+                     [-1,2,0,-1]],dtype=float)
 
 """FORWARD IS FROM DISCRETE TO CONTINIOUS"""
 def compute_propensities(states):
@@ -50,6 +51,8 @@ def compute_propensities(states):
     alpha_1 = k1*DS*DI
     alpha_2 = k1*CS*DI
     alpha_3 = k2*DI
+
+    alpha_4 = k2*DS*CI
 
     ### Found a bug (I was taking entire vector sum)
     alpha_bS = gamma * CS if CS+DS <= T1 else 0# Continious S to discrete S
@@ -61,12 +64,12 @@ def compute_propensities(states):
     alpha_fI = gamma * DI if CI+DI >T1 else 0 # Discrete I to Cont I
     
 
-    return np.array([alpha_1,alpha_2,alpha_3,alpha_bS,alpha_bI,alpha_fS,alpha_fI])
+    return np.array([alpha_1,alpha_2,alpha_3,alpha_bS,alpha_bI,alpha_fS,alpha_fI,alpha_4])
 
 
 def perform_reaction(index,states):
     
-    DS,DI,CS,CI = states
+    _,_,CS,CI = states
     """In this case we're interested in the case 
     where Continious to discrete! We don't want contintous to go below 1"""
     #This is the case for reaction 4 and 5 (ie index = 3,4)
@@ -198,11 +201,17 @@ combined[:,1] = data_table_cum[:,1] + data_table_cum[:,3] #The I
 threshold = np.ones(num_points)*T1
 
 
-plt.figure()
-plt.plot(timegrid, data_table_cum[:, 1], label='$D_I$')
-plt.plot(timegrid, data_table_cum[:, 3], label='$C_I$')
-plt.plot(timegrid,combined[:,1],label = '$C_I+D_I$')
+plt.figure(figsize=(10,8))
+#plt.plot(timegrid, data_table_cum[:, 0], label='$D_S$ Discrete')
+plt.plot(timegrid, data_table_cum[:, 1], label='$D_I$ Discrete')
+#plt.plot(timegrid, data_table_cum[:, 2], label='$C_S$ Continious')
+plt.plot(timegrid, data_table_cum[:, 3], label='$C_I$ Continious')
+plt.plot(timegrid,combined[:,1],label = '$C_I+D_I$ Combined', color = 'black',linestyle = '--')
+plt.plot(timegrid,threshold,'--', label = 'Conversion Threshold')
+plt.xlabel('days')
+plt.ylabel('Number infected')
 plt.legend()
+plt.grid(True)
 plt.show()
 
 
