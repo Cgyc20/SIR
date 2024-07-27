@@ -17,8 +17,8 @@ $$
 The mean-field model for the evolution of the averages are given by the following equations:
 
 $$
-\frac{d <S>}{dt} = -\frac{k_1}{\nu}<S><I> \\
-\frac{d <I>}{dt} = \frac{k_1}{\nu}<S><I>-k_2<I>
+\frac{d \langle S \rangle }{dt} = -\frac{k_1}{\nu}\langle S\rangle \langle I \rangle \\
+\frac{d \langle I \rangle }{dt} = \frac{k_1}{\nu}\langle S \rangle \langle I \rangle-k_2\langle I\rangle
 $$
 
 ## Hybrid modelling
