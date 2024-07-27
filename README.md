@@ -78,6 +78,7 @@ $$
 
 
 We can define the stoichiometric matrix from Reactions $1-8$ as the following. A line has been added to distinguish between reactions.  
+
 $$
  \begin{bmatrix}
  -1 &  0 & -1 &  0 &  1 &  0 & -1 &  0 \\
