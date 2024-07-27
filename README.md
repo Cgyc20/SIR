@@ -77,7 +77,7 @@ $$
 $$
 
 
-We can define the stoichiometric matrix from Reactions $1-8$ as the following. A line has been added to distinguish between reactions.  
+We can define the stoichiometric matrix from Reactions $1-8$ as the following.
 
 $$
  \begin{bmatrix}
@@ -90,4 +90,4 @@ $$
 
 
 
- 
+ We then execute the Stochastic simulation algorithm. If the next stochastic step arrives sooner than the next ODE step, then the stochastic simulation is run. 
