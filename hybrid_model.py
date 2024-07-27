@@ -4,24 +4,24 @@ import random
 import tqdm
 
 """Parameters"""
-DS_0 = 400
-DI_0 = 5
-CS_0 = 0
-CI_0 = 0
-k1 = 0.002
-k2 = 0.1
-dt = 0.1
-tf = 30
-T1 = 100
-gamma = 0.5
-number_molecules = 4
+DS_0 = 400 #Initial discrete Suceptible
+DI_0 = 5  #Initial discrete Infected
+CS_0 = 0 #Initial continious Suceptible
+CI_0 = 0 #Initial continious Infected
+k1 = 0.002 #First rate constant
+k2 = 0.1 #Second rate
+dt = 0.1 #Time step (For ODE)
+tf = 30 #Final time
+T1 = 100 #Threshold for conversion 
+gamma = 1 #The rate of conversion 
+number_molecules = 4 #The total molecules (two discrete,two cont)
 
 num_points = int(tf / dt) + 1  # Number of time points in the simulation
 timegrid = np.linspace(0, tf, num_points, dtype=np.float64)  # Time points
 data_table_init = np.zeros((num_points, number_molecules), dtype=np.float64)  # Matrix to store simulation results
 data_table_cum = np.zeros((num_points, number_molecules), dtype=np.float64) #The cumulative simulation results
 
-combined = np.zeros((num_points, 2), dtype=np.float64)
+combined = np.zeros((num_points, 2), dtype=np.float64) #Combined totals
 
 #Note the vector is like this:
 """
@@ -33,27 +33,29 @@ CS
 CI
 ]
 """
-states_init = np.array([DS_0,DI_0,CS_0,CI_0], dtype=float)
+states_init = np.array([DS_0,DI_0,CS_0,CI_0], dtype=float) #States vector
 
+"""The stoichiometric matrix correpsonding to reactions 1-8"""
 S_matrix = np.array([[-1,1,0,0],
                      [0,1,-1,0],
                      [0,-1,0,0],
+                     [-1,2,0,-1],
                      [1,0,-1,0],
                      [0,1,0,-1],
                      [-1,0,1,0],
-                     [0,-1,0,1],
-                     [-1,2,0,-1]],dtype=int)
+                     [0,-1,0,1]],dtype=int)
 
 """FORWARD IS FROM DISCRETE TO CONTINIOUS"""
 def compute_propensities(states):
-
+    """This will return the 8 propensity functions involved in the 8 different reactions"""
     DS,DI,CS,CI = states
+    """First are the propensities involved in the dynamics"""
     alpha_1 = k1*DS*DI
     alpha_2 = k1*CS*DI
     alpha_3 = k2*DI
-
     alpha_4 = k2*DS*CI
 
+    """The next are the propensities involved in conversion"""
     ### Found a bug (I was taking entire vector sum)
     alpha_bS = gamma * CS if CS+DS <= T1 else 0# Continious S to discrete S
 
@@ -63,18 +65,20 @@ def compute_propensities(states):
     
     alpha_fI = gamma * DI if CI+DI >T1 else 0 # Discrete I to Cont I
     
-
-    return np.array([alpha_1,alpha_2,alpha_3,alpha_bS,alpha_bI,alpha_fS,alpha_fI,alpha_4])
+    #Return this as an array
+    return np.array([alpha_1,alpha_2,alpha_3,alpha_4,alpha_bS,alpha_bI,alpha_fS,alpha_fI])
 
 
 def perform_reaction(index,states):
-    
+    """Here we perform the reaction step. This updates the state vector of the corresponding reaction that occurs
+    The reaction will occurs is given by the index calculated in the stochastic loop"""
+
     _,_,CS,CI = states
     """In this case we're interested in the case 
     where Continious to discrete! We don't want contintous to go below 1"""
-    #This is the case for reaction 4 and 5 (ie index = 3,4)
-    #If index == 3 then we are looking at reaction 4 (Cs --> Ds)
-    if index ==3 and CS < 1:
+    #This is the case for reaction 5 and 6 (ie index = 4,5)
+    #If index == 4 then we are looking at reaction 5 (Cs --> Ds)
+    if index ==4 and CS < 1:
 
         if CS >= random.uniform(0,1):
             """Then we update Ds"""
@@ -83,7 +87,7 @@ def perform_reaction(index,states):
         else:
             states += S_matrix[index]
           
-    elif index == 4 and CI < 1:
+    elif index == 5 and CI < 1:
         
         if CI >= random.uniform(0,1):
             """Then we update Ds"""
@@ -105,7 +109,7 @@ def gillespie_step(alpha_cum, alpha0, states):
 
 
 def update_ode(states):
-    """Updates the states based on the ODE model using forward Euler."""
+    """Updates the states based on the ODE model using forward Euler. We use RK4 to calculate this"""
 
     """Here we have two differential equations
     DS/Dt = -K_1*S*I
@@ -128,7 +132,7 @@ def update_ode(states):
         P4 = differential(S+P3[0]*dt,I+P3[1]*dt)
         return S + (P1[0]+2*P2[0]+2*P3[0]+P4[0])*dt/6, I + (P1[1]+2*P2[1]+2*P3[1]+P4[1])*dt/6
     
-    #Now return these states again
+    #Now return these states again. Note we cannot have negative states
     rk4_result = RK4(states)
     states[2] = max(rk4_result[0], 0)
     states[3] = max(rk4_result[1], 0)
@@ -154,15 +158,17 @@ def run_simulation(num_points):
     while t<tf:
 
         alpha_list = compute_propensities(states) #Compute the propensities
-        alpha0 = sum(alpha_list)
-        alpha_cum = np.cumsum(alpha_list)
+        alpha0 = sum(alpha_list) #The sum of the list
+        alpha_cum = np.cumsum(alpha_list) #Cumulative list. used to find the index 
 
-        if alpha0 != 0:
-            tau = np.log(1 / random.uniform(0, 1)) / alpha0 
+        if alpha0 != 0: #If alpha0 is not 0 then we can do the SSA
 
-            if t + tau <= td:
-                states = gillespie_step(alpha_cum, alpha0, states)
-                old_time = t
+            tau = np.log(1 / random.uniform(0, 1)) / alpha0  #Calculate the time value Tau
+
+            if t + tau <= td: #If t+tau is less than the NEXT ODE timestep then we perform the SSA
+
+                states = gillespie_step(alpha_cum, alpha0, states) #Update the states via Gillespie
+                old_time = t  #Old time
                 t += tau  # Update time
 
                 # Determine indices for updating results
@@ -179,18 +185,19 @@ def run_simulation(num_points):
                 index = min(np.searchsorted(timegrid, t + 1e-10, 'left'), num_points - 1)
                 data_table[index, :] = states  # Store results in data_table
         else:
-            states = update_ode(states)  # Perform ODE step
+            states = update_ode(states)  # Perform ODE step! 
             t = td
             td += dt
 
             index = min(np.searchsorted(timegrid, t + 1e-10, 'right'), num_points - 1)
             data_table[index, :] = states  # Store results in data_table
+
     return data_table
 
 
-total_simulations = 100
+total_simulations = 100 #Total sim
 
-for i in tqdm.tqdm(range(total_simulations)):
+for i in tqdm.tqdm(range(total_simulations)): #WE run all simulations, compile in a total list and find average 
     data_table_cum += run_simulation(num_points)
 # Calculate combined data (total molecules)
 #Now we want to divide the elements by the total number of simulations
@@ -200,9 +207,9 @@ combined[:,0] = data_table_cum[:,0] + data_table_cum[:,2] #The S
 combined[:,1] = data_table_cum[:,1] + data_table_cum[:,3] #The I
 
 
-threshold = np.ones(num_points)*T1
+threshold = np.ones(num_points)*T1 #The threshold line 
 
-
+"""Plotting the results"""
 plt.figure(figsize=(10,8))
 #plt.plot(timegrid, data_table_cum[:, 0], label='$D_S$ Discrete')
 plt.plot(timegrid, data_table_cum[:, 1], label='$D_I$ Discrete')
