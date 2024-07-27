@@ -61,17 +61,17 @@ There are four more reactions involved to be considered; the conversion reaction
 We have the following conversion reactions which have conditional rates. Otherwise zero. In this case we have switching on and off given some threshold. 
 
 $$
-(1.5) \quad  C_S \rightarrow D_S, \quad \alpha_{bS}=\gamma|_{C_S+D_S \leq T_1}\\
+(1.5) \quad  C_S \rightarrow D_S, \quad \alpha_{bS}=\gamma|_{C_S+D_S \leq T_1}
 $$
 $$
-(1.6) \quad C_I \rightarrow D_I, \quad \alpha_{bI}=\gamma|_{C_I+D_I \leq T_1}\\ 
+(1.6) \quad C_I \rightarrow D_I, \quad \alpha_{bI}=\gamma|_{C_I+D_I \leq T_1}
 $$
 $$
-(1.7) \quad D_S \rightarrow C_S,  \quad \alpha_{fS}=\gamma|_{C_S+D_S < T_2}\\
+(1.7) \quad D_S \rightarrow C_S,  \quad \alpha_{fS}=\gamma|_{C_S+D_S < T_2}
 $$
 
 $$
-(1.8) \quad D_I \rightarrow C_I, \quad \alpha_{fI}=\gamma|_{C_I+D_I < T_2}\\
+(1.8) \quad D_I \rightarrow C_I, \quad \alpha_{fI}=\gamma|_{C_I+D_I < T_2}
 $$
 
 
