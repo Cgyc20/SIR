@@ -63,9 +63,11 @@ We have the following conversion reactions which have conditional rates. Otherwi
 $$
 (1.5) \quad  C_S \rightarrow D_S, \quad \alpha_{bS}=\gamma|_{C_S+D_S \leq T_1}
 $$
+
 $$
 (1.6) \quad C_I \rightarrow D_I, \quad \alpha_{bI}=\gamma|_{C_I+D_I \leq T_1}
 $$
+
 $$
 (1.7) \quad D_S \rightarrow C_S,  \quad \alpha_{fS}=\gamma|_{C_S+D_S < T_2}
 $$
