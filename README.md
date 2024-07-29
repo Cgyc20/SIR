@@ -36,12 +36,14 @@ $$
 $$
 
 $$
-(1.2) \quad D_S + C_I \rightarrow 2D_I, \quad \alpha_2 = K_1D_SC_I
+(1.2) \quad C_S + D_I \rightarrow 2D_I, \quad \alpha_3 = K_1C_SD_I
 $$
 
 $$
-(1.3) \quad C_S + D_I \rightarrow 2D_I, \quad \alpha_3 = K_1C_SD_I
+(1.3) \quad D_S + C_I \rightarrow 2C_I, \quad \alpha_2 = K_1D_SC_I
 $$
+
+
 
 
 ### Reaction two: $I \rightarrow R$
@@ -82,9 +84,9 @@ We can define the stoichiometric matrix from Reactions $1-8$ as the following.
 $$
  \begin{bmatrix}
  -1 &  0 & -1 &  0 &  1 &  0 & -1 &  0 \\
-  1 &  1 &  2 & -1 &  0 &  1 &  0 & -1 \\
+  1 &  1 &  0 & -1 &  0 &  1 &  0 & -1 \\
   0 & -1 &  0 &  0 & -1 &  0 &  1 &  0 \\
-  0 &  0 & -1 &  0 &  0 & -1 &  0 &  1 \\
+  0 &  0 &  1 &  0 &  0 & -1 &  0 &  1 \\
 \end{bmatrix} 
 $$
 
