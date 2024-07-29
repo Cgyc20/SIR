@@ -1,122 +1,121 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import tqdm
 
-# Load parameters from file
-S0, I0, k1nu, k2 = np.loadtxt('parameters.dat')
-# Total time
-T = 40
+S = 400 #Initial discrete Suceptible
+I = 1  #Initial discrete Infected
+k1 = 0.002 #First rate constant
+k2 = 0.1 #Second rate
+tf = 50 #Final time
+number_molecules = 2 
+dt = 0.1
 
 
-def ODE(S_value, I_value, t_value, dt):
+num_points = int(tf / dt) + 1  # Number of time points in the simulation
+timegrid = np.linspace(0, tf, num_points, dtype=np.float64)  # Time points
+data_table_init = np.zeros((num_points, number_molecules), dtype=np.float64)  # Matrix to store simulation results
+data_table_cum = np.zeros((num_points, number_molecules), dtype=np.float64) #The cumulative simulation results
 
-    """This models the average trajectory according to the CME
-    INPUTS :: The initial S0,I0 and initial timestep t_value, timestep dt
-    OUTPUT :: List of I,S,T (which is the vector list)"""
-    t_list = [t_value]
-    S_list = [S_value]
-    I_list = [I_value]
-    
+states_init = np.array([S,I], dtype=int) #States vector
 
-    while t_value < T :
-    
-        t_value += dt
-        dS = -k1nu * S_value * I_value * dt
-        dI = (k1nu * S_value * I_value - k2 * I_value) * dt
+#Stoichiometric matrix involved in 
+#R1) S + I --> 2I (k1)
+#R2) I --> R (k2)
+S_matrix = np.array([[-1,1],
+                    [0,-1]],dtype=int)
 
-        S_value += dS
-        I_value += dI
 
-        t_list.append(t_value)
-        I_list.append(I_value)
-        S_list.append(S_value)
+def compute_propensities(states):
+    """This will return the 8 propensity functions involved in the 8 different reactions"""
+    S,I = states
+    """First are the propensities involved in the dynamics"""
+    alpha_1 = k1*S*I
+    alpha_2 = k2*I
+    return np.array([alpha_1,alpha_2],dtype=float)
+
+
+def perform_reaction(index,states):
+    """Here we perform the reaction step. This updates the state vector of the corresponding reaction that occurs
+    The reaction will occurs is given by the index calculated in the stochastic loop"""
+
+    """In this case we're interested in the case 
+    where Continious to discrete! We don't want contintous to go below 1"""
+    #This is the case for reaction 5 and 6 (ie index = 4,5)
+    #If index == 4 then we are looking at reaction 5 (Cs --> Ds)
+    states += S_matrix[index]  # General update for other reactions
+    states[0] = np.max(states[0],0)
+    states[1] = np.max(states[1],0)
+
+    return states
+
+def gillespie_step(alpha_cum, alpha0, states):
+    """Performs one step of the Gillespie algorithm."""
+    r2 = random.uniform(0, 1)  # Generate random number for reaction selection
+    index = next(i for i, alpha in enumerate(alpha_cum / alpha0) if r2 <= alpha)  # Determine which reaction occurs
+    return perform_reaction(index, states)  # Update states based on selected reaction
+
+def run_simulation(num_points):
+
+    """This run the simulation one time
+    INPUT: the number of data points
+    RETURNS: A data table with the concentrations of D and C respectively"""
+
+    t = 0 #Set time = 0
+    old_time = t
+    data_table = np.zeros((num_points, number_molecules), dtype=np.float64) #Define a new data table
+    states = states_init.copy() #
+
+    while t<tf:
+
         
-        if I_value <= 0:
-            break  # Stop if the infected population drops to 0 or below
+        alpha_list = compute_propensities(states) #Compute the propensities
+        alpha0 = sum(alpha_list) #The sum of the list
+        if alpha0 == 0:
+            break
+        alpha_cum = np.cumsum(alpha_list) #Cumulative list. used to find the index 
+        #print(f"Cumulative alpha_list = {alpha_cum} ")
+        tau = np.log(1 / random.uniform(0, 1)) / alpha0  #Calculate the time value Tau
+        #print(f"tau value {tau}")
+        states = gillespie_step(alpha_cum, alpha0, states) #Update the states via Gillespie
+        old_time = t  #Old time
+        t += tau  # Update time
 
-    return S_list, I_list, t_list
+        # Determine indices for updating results
+        ind_before = np.searchsorted(timegrid, old_time, 'right')
+        ind_after = np.searchsorted(timegrid, t, 'left')
+        # print(f"old_time: {old_time}, t: {t}, ind_before: {ind_before}, ind_after: {ind_after}")
+        for index in range(ind_before, min(ind_after + 1, num_points)):
+            data_table[index, :] = states  # Store results in data_table    
 
+    return data_table
 
+total_simulations = 100 #Total sim
 
-def propensity(S, I):
-    """This calculates the propensity function"""
-    a1 = k1nu * S * I  # Reaction 1 propensity
-    a2 = k2 * I  # Reaction 2 propensity
-    return a1, a2
+for i in tqdm.tqdm(range(total_simulations)): #WE run all simulations, compile in a total list and find average 
+    data_table_cum += run_simulation(num_points)
+# Calculate combined data (total molecules)
+#Now we want to divide the elements by the total number of simulations
+data_table_cum /= total_simulations 
 
-stoich = np.array([(-1, 1), (0, -1)])  # Stoichiometry matrix
+plt.figure()
 
-def gillespie(S_value, I_value, t_value):
-    """This uses the Gillespie algorithm to model the system """
-
-    I = I_value
-    S = S_value
-    t = t_value
-    I_list = [I_value]
-    S_list = [S_value]
-    t_list = [t_value]
-
-    #Can add another condition to only run up to this threshold value
-    while t < T:
-
-        r1 = random.uniform(0, 1)
-        r2 = random.uniform(0, 1)
-
-        a1, a2 = propensity(S, I)
-        a0 = a1 + a2
-
-        if a0 > 0:  # Check to prevent division by zero in tau calculation
-            tau = np.log(1 / r1) / a0
-
-            if r2 < a1 / a0:
-                # Execute reaction 1
-                change = stoich[0]  # Select the first reaction's stoichiometry
-            else:
-                # Execute reaction 2
-                change = stoich[1]  # Select the second reaction's stoichiometry
-
-            S += change[0]
-            I += change[1]
-
-            S = max(0, S)  # Ensure S does not go below 0
-            I = max(0, I)  # Ensure I does not go below 0
-
-            t += tau
-            I_list.append(I)  # Append the current I value
-            S_list.append(S)
-            t_list.append(t)
-        
-    return S_list, I_list, t_list
-
-# Initialize lists
-S_list_1 = [S0]
-I_list_1 = [I0]
-t_value = 0
-t_list_1 = [t_value]
-
-# Perform Gillespie simulation
-
-simulations = 10
-I_all_list = []
-t_all_list = []
-for i in range(simulations):
-    """Plotting range of trajectories"""
-    _, I_list, t_list = gillespie(S0, I0, t_value)
-    I_all_list.append(I_list)
-    t_all_list.append(t_list)
-
-S_list, I_list, t_list = ODE(S0, I0, t_value, 0.1)
-
-
-
-# Plot the results
-
-plt.figure(figsize=(8, 5))  # Increase the height of the figure
-for i in range(simulations):
-    plt.step(t_all_list[i], I_all_list[i], where='post', linewidth=0.5)  # SDEs with thinner lines
-plt.plot(t_list, I_list, linewidth=2,linestyle='--',color = 'black')  # ODE with dotted and thicker line
+# Plot for Susceptible (S)
+plt.subplot(2, 1, 1)
+plt.plot(timegrid, data_table_cum[:, 0], label='S')
 plt.xlabel('Time')
-plt.ylabel('Infected Population')
-plt.grid()
-plt.legend(['SDE', 'ODE'], loc='best')  # Add legend to distinguish between SDE and ODE
+plt.ylabel('Susceptible')
+plt.legend()
+
+# Plot for Infected (I)
+plt.subplot(2, 1, 2)
+plt.plot(timegrid, data_table_cum[:, 1], label='I')
+plt.xlabel('Time')
+plt.ylabel('Infected')
+plt.legend()
+
+plt.tight_layout()
 plt.show()
+
+
+
