@@ -4,15 +4,16 @@ import random
 import tqdm
 
 """Parameters"""
-DS_0 = 400 #Initial discrete Suceptible
+DS_0 = 10 #Initial discrete Suceptible
 DI_0 = 5  #Initial discrete Infected
-CS_0 = 0 #Initial continious Suceptible
-CI_0 = 0 #Initial continious Infected
+CS_0 = 400 #Initial continious Suceptible
+CI_0 = 10 #Initial continious Infected
 k1 = 0.002 #First rate constant
 k2 = 0.1 #Second rate
-dt = 0.1 #Time step (For ODE)
-tf = 30 #Final time
-T1 = 100 #Threshold for conversion 
+dt = 0.01 #Time step (For ODE)
+tf = 10 #Final time
+T1 = 40 #Threshold for conversion (Infected)
+T2 = 100 #Threshold for conversion (suceptible)
 gamma = 1 #The rate of conversion 
 number_molecules = 4 #The total molecules (two discrete,two cont)
 
@@ -45,6 +46,16 @@ S_matrix = np.array([[-1,1,0,0],
                      [-1,0,1,0],
                      [0,-1,0,1]],dtype=int)
 
+#Briefly remove that 4th column
+# S_matrix = np.array([[-1,1,0,0],
+#                      [0,1,-1,0],
+#                      [0,-1,0,0],
+#                      [1,0,-1,0],
+#                      [0,1,0,-1],
+#                      [-1,0,1,0],
+#                      [0,-1,0,1]],dtype=int)
+
+
 """FORWARD IS FROM DISCRETE TO CONTINIOUS"""
 def compute_propensities(states):
     """This will return the 8 propensity functions involved in the 8 different reactions"""
@@ -52,20 +63,21 @@ def compute_propensities(states):
     """First are the propensities involved in the dynamics"""
     alpha_1 = k1*DS*DI
     alpha_2 = k1*CS*DI
-    alpha_3 = k2*DI
     alpha_4 = k2*DS*CI
+    alpha_3 = k2*DI
 
     """The next are the propensities involved in conversion"""
     ### Found a bug (I was taking entire vector sum)
-    alpha_bS = gamma * CS if CS+DS <= T1 else 0# Continious S to discrete S
+    alpha_bS = gamma * CS if CS+DS < T2 else 0# Continious S to discrete S
 
-    alpha_bI = gamma * CI if CI+DI  <= T1 else 0 # Cont I to Discrete I
+    alpha_bI = gamma * CI if CI+DI  < T1 else 0 # Cont I to Discrete I
 
-    alpha_fS = gamma * DS if  CS+DS > T1 else 0# Discrete S to continous S
+    alpha_fS = gamma * DS if  CS+DS >= T2 else 0# Discrete S to continous S
     
-    alpha_fI = gamma * DI if CI+DI >T1 else 0 # Discrete I to Cont I
+    alpha_fI = gamma * DI if CI+DI >= T1 else 0 # Discrete I to Cont I
     
     #Return this as an array
+    # return np.array([alpha_1,alpha_2,alpha_3,alpha_bS,alpha_bI,alpha_fS,alpha_fI])
     return np.array([alpha_1,alpha_2,alpha_3,alpha_4,alpha_bS,alpha_bI,alpha_fS,alpha_fI])
 
 
@@ -78,26 +90,16 @@ def perform_reaction(index,states):
     where Continious to discrete! We don't want contintous to go below 1"""
     #This is the case for reaction 5 and 6 (ie index = 4,5)
     #If index == 4 then we are looking at reaction 5 (Cs --> Ds)
-    if index ==4 and CS < 1:
-
-        if CS >= random.uniform(0,1):
-            """Then we update Ds"""
-            states[0] += S_matrix[index][0]
-            states[2] = 0
-        else:
-            states += S_matrix[index]
-          
+    if index == 4 and CS < 1:
+        if CS >= random.uniform(0, 1):
+            states[0] += S_matrix[index][0]  # Update discrete molecules
+            states[2] = 0  # Reset continuous molecules
     elif index == 5 and CI < 1:
-        
-        if CI >= random.uniform(0,1):
-            """Then we update Ds"""
-            states[1] += S_matrix[index][1]
-            states[3] = 0
-        else:
-            states += S_matrix[index]
+        if CI >= random.uniform(0, 1):
+            states[1] += S_matrix[index][1]  # Update discrete molecules
+            states[3] = 0  # Reset continuous molecules
     else:
-        """otherwise we just execute the norm """
-        states += S_matrix[index]
+        states += S_matrix[index]  # General update for other reactions
 
     return states
 
@@ -160,6 +162,7 @@ def run_simulation(num_points):
         alpha_list = compute_propensities(states) #Compute the propensities
         alpha0 = sum(alpha_list) #The sum of the list
         alpha_cum = np.cumsum(alpha_list) #Cumulative list. used to find the index 
+        print(f"Cumulative alpha list = {alpha_cum}")
 
         if alpha0 != 0: #If alpha0 is not 0 then we can do the SSA
 
@@ -174,7 +177,7 @@ def run_simulation(num_points):
                 # Determine indices for updating results
                 ind_before = np.searchsorted(timegrid, old_time, 'right')
                 ind_after = np.searchsorted(timegrid, t, 'left')
-
+                # print(f"old_time: {old_time}, t: {t}, ind_before: {ind_before}, ind_after: {ind_after}")
                 for index in range(ind_before, min(ind_after + 1, num_points)):
                     data_table[index, :] = states  # Store results in data_table
             else:
@@ -203,24 +206,36 @@ for i in tqdm.tqdm(range(total_simulations)): #WE run all simulations, compile i
 #Now we want to divide the elements by the total number of simulations
 data_table_cum /= total_simulations 
 
-combined[:,0] = data_table_cum[:,0] + data_table_cum[:,2] #The S
-combined[:,1] = data_table_cum[:,1] + data_table_cum[:,3] #The I
+combined[:,0] = data_table_cum[:,0] + data_table_cum[:,2] # The S
+combined[:,1] = data_table_cum[:,1] + data_table_cum[:,3] # The I
 
-
-threshold = np.ones(num_points)*T1 #The threshold line 
+threshold = np.ones(num_points) * T1 # The threshold line 
 
 """Plotting the results"""
-plt.figure(figsize=(10,8))
-#plt.plot(timegrid, data_table_cum[:, 0], label='$D_S$ Discrete')
-plt.plot(timegrid, data_table_cum[:, 1], label='$D_I$ Discrete')
-#plt.plot(timegrid, data_table_cum[:, 2], label='$C_S$ Continious')
-plt.plot(timegrid, data_table_cum[:, 3], label='$C_I$ Continious')
-plt.plot(timegrid,combined[:,1],label = '$C_I+D_I$ Combined', color = 'black',linestyle = '--')
-plt.plot(timegrid,threshold,'--', label = 'Conversion Threshold')
-plt.xlabel('days')
-plt.ylabel('Number infected')
-plt.legend()
-plt.grid(True)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
+
+# Plot current infected on the first subplot
+ax1.plot(timegrid, data_table_cum[:, 1], label='$D_I$ Discrete')
+ax1.plot(timegrid, data_table_cum[:, 3], label='$C_I$ Continuous')
+ax1.plot(timegrid, combined[:, 1], label='$C_I+D_I$ Combined', color='black', linestyle='--')
+ax1.plot(timegrid, threshold, '--', label='Conversion Threshold')
+ax1.set_xlabel('days')
+ax1.set_ylabel('Number infected')
+ax1.legend()
+ax1.grid(True)
+ax1.set_title('Current Infected Over Time')
+
+# Plot susceptible on the second subplot
+ax2.plot(timegrid, data_table_cum[:, 0], label='$D_S$ Discrete')
+ax2.plot(timegrid, data_table_cum[:, 2], label='$C_S$ Continuous')
+ax2.plot(timegrid, combined[:, 0], label='$C_S+D_S$ Combined', color='black', linestyle='--')
+ax2.set_xlabel('days')
+ax2.set_ylabel('Number susceptible')
+ax2.legend()
+ax2.grid(True)
+ax2.set_title('Susceptible Over Time')
+
+plt.tight_layout()
 plt.show()
 
 
