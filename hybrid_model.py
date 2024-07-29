@@ -4,17 +4,17 @@ import random
 import tqdm
 
 """Parameters"""
-DS_0 = 10 #Initial discrete Suceptible
-DI_0 = 5  #Initial discrete Infected
-CS_0 = 400 #Initial continious Suceptible
-CI_0 = 10 #Initial continious Infected
+DS_0 = 400 #Initial discrete Suceptible
+DI_0 = 1  #Initial discrete Infected
+CS_0 = 0 #Initial continious Suceptible
+CI_0 = 0 #Initial continious Infected
 k1 = 0.002 #First rate constant
 k2 = 0.1 #Second rate
-dt = 0.01 #Time step (For ODE)
-tf = 10 #Final time
-T1 = 40 #Threshold for conversion (Infected)
-T2 = 100 #Threshold for conversion (suceptible)
-gamma = 1 #The rate of conversion 
+dt = 0.1 #Time step (For ODE)
+tf = 30 #Final time
+T1 = 50 #Threshold for conversion (Infected)
+T2 = 50 #Threshold for conversion (suceptible)
+gamma = 0.1 #The rate of conversion 
 number_molecules = 4 #The total molecules (two discrete,two cont)
 
 num_points = int(tf / dt) + 1  # Number of time points in the simulation
@@ -40,7 +40,7 @@ states_init = np.array([DS_0,DI_0,CS_0,CI_0], dtype=float) #States vector
 S_matrix = np.array([[-1,1,0,0],
                      [0,1,-1,0],
                      [0,-1,0,0],
-                     [-1,2,0,-1],
+                     [-1,0,0,1],
                      [1,0,-1,0],
                      [0,1,0,-1],
                      [-1,0,1,0],
@@ -63,8 +63,9 @@ def compute_propensities(states):
     """First are the propensities involved in the dynamics"""
     alpha_1 = k1*DS*DI
     alpha_2 = k1*CS*DI
-    alpha_4 = k2*DS*CI
     alpha_3 = k2*DI
+    alpha_4 = k1*DS*CI
+    
 
     """The next are the propensities involved in conversion"""
     ### Found a bug (I was taking entire vector sum)
@@ -162,7 +163,6 @@ def run_simulation(num_points):
         alpha_list = compute_propensities(states) #Compute the propensities
         alpha0 = sum(alpha_list) #The sum of the list
         alpha_cum = np.cumsum(alpha_list) #Cumulative list. used to find the index 
-        print(f"Cumulative alpha list = {alpha_cum}")
 
         if alpha0 != 0: #If alpha0 is not 0 then we can do the SSA
 
@@ -198,7 +198,7 @@ def run_simulation(num_points):
     return data_table
 
 
-total_simulations = 100 #Total sim
+total_simulations = 5 #Total sim
 
 for i in tqdm.tqdm(range(total_simulations)): #WE run all simulations, compile in a total list and find average 
     data_table_cum += run_simulation(num_points)
