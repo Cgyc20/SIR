@@ -5,7 +5,13 @@ import tqdm
 
 # Parameters for both simulations
 S0 = 400 # Initial discrete Susceptible
-I0 = 1  # Initial discrete Infected
+I0 = 1 # Initial discrete Infected
+
+S02 = S0**2
+I02 = I0**2
+SI0 = S0*I0
+
+
 k1 = 0.002 # First rate constant
 k2 = 0.1 # Second rate
 tf = 50 # Final time
@@ -41,7 +47,7 @@ def gillespie_step(alpha_cum, alpha0, states):
 # Function to run Gillespie simulation
 def run_gillespie_simulation():
     data_table_cum = np.zeros((num_points, number_molecules), dtype=np.float64)
-    total_simulations = 100
+    total_simulations = 200
 
     for _ in tqdm.tqdm(range(total_simulations)):
         t = 0
@@ -71,32 +77,53 @@ def run_gillespie_simulation():
     return data_table_cum
 
 # Differential equations for deterministic model
-def differential(S, I):
-    dSdt = -k1 * S * I
-    dIdt = k1 * S * I - k2 * I
-    return dSdt, dIdt
+def differential(S, I, I2, SI, S2):
+    DSIDT = k1*((S2*SI**2)/(I*S**2)-((SI**2)*I2)/(S*I**2)-SI)-k2*SI
+    DS2DT = k1*(SI-2*((SI**2)*S2)/((S**2)*I))
+    DI2DT = k1*(2*((SI**2)*I2)/(S*I**2)+SI)+k2*(I-2*I2)
+
+    dSdt = -k1 * SI
+    dIdt = k1 * SI - k2 * I
+
+    return dSdt, dIdt, DSIDT, DS2DT, DI2DT
 
 # Runge-Kutta step function
-def RK4_step(S, I, dt):
-    k1_S, k1_I = differential(S, I)
-    k2_S, k2_I = differential(S + k1_S * dt / 2, I + k1_I * dt / 2)
-    k3_S, k3_I = differential(S + k2_S * dt / 2, I + k2_I * dt / 2)
-    k4_S, k4_I = differential(S + k3_S * dt, I + k3_I * dt)
+def RK4_step(S, I, I2, SI, S2, dt):
+    k1_S, k1_I, k1_SI, k1_S2, k1_I2 = differential(S, I, I2, SI, S2)
+    k2_S, k2_I, k2_SI, k2_S2, k2_I2 = differential(S + k1_S * dt / 2, I + k1_I * dt / 2, I2 + k1_I2 * dt / 2, SI + k1_SI * dt / 2, S2 + k1_S2 * dt / 2)
+    k3_S, k3_I, k3_SI, k3_S2, k3_I2 = differential(S + k2_S * dt / 2, I + k2_I * dt / 2, I2 + k2_I2 * dt / 2, SI + k2_SI * dt / 2, S2 + k2_S2 * dt / 2)
+    k4_S, k4_I, k4_SI, k4_S2, k4_I2 = differential(S + k3_S * dt, I + k3_I * dt, I2 + k3_I2 * dt, SI + k3_SI * dt, S2 + k3_S2 * dt)
+    
     S_next = S + dt * (k1_S + 2 * k2_S + 2 * k3_S + k4_S) / 6
     I_next = I + dt * (k1_I + 2 * k2_I + 2 * k3_I + k4_I) / 6
-    return S_next, I_next
+    SI_next = SI + dt*(k1_SI + 2 * k2_SI + 2 * k3_SI + k4_SI )/6
+    S2_next = S2 + dt*(k1_S2 + 2 * k2_S2 + 2 * k3_S2 + k4_S2 )/6
+    S3_next = I2 + dt*(k1_I2 + 2 * k2_I2 + 2 * k3_I2 + k4_I2 )/6
+
+    
+    return S_next, I_next, SI_next, S2_next, S3_next
 
 # Function to run deterministic simulation
 def run_deterministic_simulation():
     S = np.zeros(num_points)
     I = np.zeros(num_points)
+    
+    S2 = np.zeros(num_points)
+    I2 = np.zeros(num_points)
+    SI = np.zeros(num_points)
+
     S[0] = S0
     I[0] = I0
-
+    SI[0] = SI0
+    S2[0] = S02
+    I2[0] = I02
+    
     for i in range(1, num_points):
-        S[i], I[i] = RK4_step(S[i-1], I[i-1], dt)
-
+        S[i], I[i], SI[i], S2[i], I2[i] = RK4_step(S[i - 1], I[i - 1], I2[i-1], SI[i-1], S2[i-1], dt)
+        
     return S, I
+
+
 
 # Run simulations
 data_table_gillespie = run_gillespie_simulation()
