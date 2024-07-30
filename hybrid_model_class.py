@@ -111,7 +111,9 @@ class HybridModel:
         old_time = t
         td = self.dt
         data_table = np.zeros((self.num_points, 2*self.number_molecules), dtype=np.float64)
+        
         states = self.states_init.copy()
+        data_table[0,:] = states
 
         while t < self.tf:
             alpha_list = self.compute_propensities(states)
