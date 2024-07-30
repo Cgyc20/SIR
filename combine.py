@@ -5,7 +5,7 @@ import tqdm
 
 # Parameters for both simulations
 S0 = 400 # Initial discrete Susceptible
-I0 = 1 # Initial discrete Infected
+I0 = 2 # Initial discrete Infected
 
 S02 = S0**2
 I02 = I0**2

@@ -5,16 +5,16 @@ import tqdm
 
 """Parameters"""
 DS_0 = 400 #Initial discrete Suceptible
-DI_0 = 1  #Initial discrete Infected
+DI_0 = 5  #Initial discrete Infected
 CS_0 = 0 #Initial continious Suceptible
 CI_0 = 0 #Initial continious Infected
 k1 = 0.002 #First rate constant
 k2 = 0.1 #Second rate
-dt = 0.1 #Time step (For ODE)
+dt = 0.2 #Time step (For ODE)
 tf = 40 #Final time
-T1 = 10 #Threshold for conversion (Infected)
-T2 = 10 #Threshold for conversion (suceptible)
-gamma = 1 #The rate of conversion 
+T1 = 40 #Threshold for conversion (Infected)
+T2 =T1 #Threshold for conversion (suceptible)
+gamma = 0.5 #The rate of conversion 
 number_molecules = 4 #The total molecules (two discrete,two cont)
 
 num_points = int(tf / dt) + 1  # Number of time points in the simulation
@@ -63,11 +63,12 @@ def compute_propensities(states):
     alpha_fI = gamma * DI if CI+DI >= T1 else 0 # Discrete I to Cont I
     
     # Debug print statements
-    print(f"Propensities: alpha_1={alpha_1}, alpha_2={alpha_2}, alpha_3={alpha_3}, alpha_4={alpha_4}, alpha_bS={alpha_bS}, alpha_bI={alpha_bI}, alpha_fS={alpha_fS}, alpha_fI={alpha_fI}")
+    #print(f"Propensities: alpha_1={alpha_1}, alpha_2={alpha_2}, alpha_3={alpha_3}, alpha_4={alpha_4}, alpha_bS={alpha_bS}, alpha_bI={alpha_bI}, alpha_fS={alpha_fS}, alpha_fI={alpha_fI}")
     
     return np.array([alpha_1,alpha_2,alpha_3,alpha_4,alpha_bS,alpha_bI,alpha_fS,alpha_fI])
 
 def perform_reaction(index,states):
+    print(f"The index is {index}")
     _,_,CS,CI = states
     if index == 4 and CS < 1:
         if CS >= random.uniform(0, 1):
@@ -106,7 +107,7 @@ def update_ode(states):
     states[3] = max(rk4_result[1], 0)
 
     # Debug print statement
-    print(f"ODE Update: CS={states[2]}, CI={states[3]}")
+    #print(f"ODE Update: CS={states[2]}, CI={states[3]}")
 
     return states
 
@@ -126,6 +127,7 @@ def run_simulation(num_points):
         alpha_cum = np.cumsum(alpha_list)
 
         if alpha0 >= 1e-10:
+            print("alpha > 0 , running Gillespie")
             tau = np.log(1 / random.uniform(0, 1)) / alpha0
 
             if t + tau <= td:
@@ -138,6 +140,7 @@ def run_simulation(num_points):
                 for index in range(ind_before, min(ind_after + 1, num_points)):
                     data_table[index, :] = states
             else:
+                #print("alpha =0  , running ODE")
                 states = update_ode(states)
                 t = td
                 td += dt
@@ -145,6 +148,7 @@ def run_simulation(num_points):
                 index = min(np.searchsorted(timegrid, t + 1e-10, 'left'), num_points - 1)
                 data_table[index, :] = states
         else:
+            print("t + tau > td: Running ODE")
             states = update_ode(states)
             t = td
             td += dt
