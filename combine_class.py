@@ -18,7 +18,7 @@ class SISimulation:
         self.num_points = int(tf / dt) + 1
         self.timegrid = np.linspace(0, tf, self.num_points, dtype=np.float64)
         self.number_molecules = 2
-        
+        self.states = np.array([S0,I0],dtype = float)
         self.S_matrix = np.array([[-1, 1], [0, -1]], dtype=int)
         
     def compute_propensities(self, states):
@@ -40,13 +40,12 @@ class SISimulation:
     
     def run_gillespie_simulation(self, total_simulations=200):
         data_table_cum = np.zeros((self.num_points, self.number_molecules), dtype=np.float64)
-
         for _ in tqdm.tqdm(range(total_simulations)):
             t = 0
             old_time = t
             data_table = np.zeros((self.num_points, self.number_molecules), dtype=np.float64)
             states = np.array([self.S0, self.I0], dtype=int)
-
+            data_table[0,:] = states
             while t < self.tf:
                 alpha_list = self.compute_propensities(states)
                 alpha0 = sum(alpha_list)
@@ -111,11 +110,11 @@ class SISimulation:
         
         return S, I
     
-    def run_combined(self):
+    def run_combined(self,total_simulations):
         """Running the combined model"""
-
+        """This runs S,I ODE and the data_table_cum"""
         S, I = self.run_deterministic_simulation()
-        data_table_cum = self.run_gillespie_simulation()
+        data_table_cum = self.run_gillespie_simulation(total_simulations=total_simulations)
         return S, I, data_table_cum
     
 

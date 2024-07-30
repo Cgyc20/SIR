@@ -4,33 +4,36 @@ from hybrid_model_class import HybridModel
 from combine_class import SISimulation 
 
 
-DS_0 = 200  # Initial discrete Susceptible
-DI_0 = 5   # Initial discrete Infected
+DS_0 = 120  # Initial discrete Susceptible
+DI_0 = 2  # Initial discrete Infected
 CS_0 = 0   # Initial continuous Susceptible
 CI_0 = 0   # Initial continuous Infected
 k1 = 0.002 # First rate constant
 k2 = 0.1   # Second rate
 dt = 0.2   # Time step (For ODE)
 tf = 40    # Final time
-T1 = 40    # Threshold for conversion (Infected)
+T1 = 20    # Threshold for conversion (Infected)
 T2 = T1    # Threshold for conversion (Susceptible)
 gamma = 0.5 # The rate of conversion 
 number_molecules = 4 # The total molecules (two discrete, two continuous)
+total_sims = 200
+
 
 # Create instances of HybridModel and SISimulation with predefined rates
 Hybrid_Model = HybridModel(DS_0=DS_0, DI_0=DI_0, CS_0=CS_0, CI_0=CI_0, k1=k1, k2=k2, dt=dt, tf=tf, T1=T1, T2=T2, gamma=gamma)
 combined_model = SISimulation(S0=DS_0, I0=DI_0, k1=k1, k2=k2, tf=tf, dt=dt)
 
 # Run multiple simulations using HybridModel
-timegrid, data_table_cum, combined_vector = Hybrid_Model.run_multiple(total_simulations=100)
+timegrid, data_table_cum, combined_vector = Hybrid_Model.run_multiple(total_simulations=total_sims)
 
 # Run the combined model using SISimulation
-S, I, data_table_combined = combined_model.run_combined()
+S, I, data_table_combined = combined_model.run_combined(total_simulations=total_sims)
 
 # Plot the results
 plt.figure()
 plt.plot(timegrid, combined_vector[:, 1], label='Hybrid $D_I+C_I$')
 plt.plot(timegrid, I, label='ODE Infected')
+plt.plot(timegrid,data_table_combined[:,1], label = 'SSA $I$')
 plt.legend()
 plt.show()
 
