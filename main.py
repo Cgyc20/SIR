@@ -15,7 +15,7 @@ tf = 40    # Final time
 T1 = 20    # Threshold for conversion (Infected)
 T2 = T1    # Threshold for conversion (Susceptible)
 gamma = 0.5 # The rate of conversion 
-number_molecules = 4 # The total molecules (two discrete, two continuous)
+
 total_sims = 200
 
 
@@ -24,14 +24,14 @@ Hybrid_Model = HybridModel(DS_0=DS_0, DI_0=DI_0, CS_0=CS_0, CI_0=CI_0, k1=k1, k2
 combined_model = SISimulation(S0=DS_0, I0=DI_0, k1=k1, k2=k2, tf=tf, dt=dt)
 
 # Run multiple simulations using HybridModel
-timegrid, data_table_cum, combined_vector = Hybrid_Model.run_multiple(total_simulations=total_sims)
+timegrid, data_table_cum, total_molecules = Hybrid_Model.run_multiple(total_simulations=total_sims)
 
 # Run the combined model using SISimulation
 S, I, data_table_combined = combined_model.run_combined(total_simulations=total_sims)
 
 # Plot the results
 plt.figure()
-plt.plot(timegrid, combined_vector[:, 1], label='Hybrid $D_I+C_I$')
+plt.plot(timegrid, total_molecules[:, 1], label='Hybrid $D_I+C_I$')
 plt.plot(timegrid, I, label='ODE Infected')
 plt.plot(timegrid,data_table_combined[:,1], label = 'SSA $I$')
 plt.legend()
