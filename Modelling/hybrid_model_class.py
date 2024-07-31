@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import tqdm
-
+import time
 class HybridModel:
     def __init__(self, DS_0=400, DI_0=5, CS_0=0, CI_0=0, k1=0.002, k2=0.1, dt=0.2, tf=40, T1=40, T2=40, gamma=0.5):
         """
@@ -216,9 +216,12 @@ class HybridModel:
         """
         #DS,DI,CS,CI
         print("Running multiple simulations of the Hybrid_model...")
+
+        start_time = time.time()
         for i in tqdm.tqdm(range(total_simulations)):
             self.data_table_cum += self.run_simulation()
         
+        self.total_time = time.time() - start_time
         self.data_table_cum /= total_simulations  # Average the results
         
         self.DS_vector = self.data_table_cum[:,0]

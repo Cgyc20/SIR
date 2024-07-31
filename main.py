@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from Modelling import HybridModel, SISimulation
 
 # Parameters for the simulation
-DS_0 = 200      # Initial number of discrete Susceptible individuals
+DS_0 = 2000      # Initial number of discrete Susceptible individuals
 DI_0 = 2        # Initial number of discrete Infected individuals
 CS_0 = 0        # Initial number of continuous Susceptible individuals
 CI_0 = 0        # Initial number of continuous Infected individuals
@@ -15,7 +15,7 @@ T1 = 40         # Threshold for converting continuous to discrete Infected
 T2 = T1         # Threshold for converting continuous to discrete Susceptible
 gamma = 2    # Rate of conversion between discrete and continuous populations
 
-total_sims = 1000  # Number of simulations to run
+total_sims = 100  # Number of simulations to run
 
 # Create an instance of the HybridModel with the specified parameters
 hybrid_model = HybridModel(
@@ -33,6 +33,16 @@ timegrid, DS_vector, DI_vector, CS_vector, CI_vector, HS_vector, HI_vector = hyb
 S_ODE, I_ODE, S_stochastic, I_stochastic = combined_model.run_combined(total_simulations=total_sims)
 
 
+SSA_time = combined_model.total_SSA_time
+ODE_time = combined_model.total_ODE_time
+hybrid_time = hybrid_model.total_time
+
+print(f"Time taken for {total_sims} simulations using ODE: {ODE_time:.2f} seconds")
+print(f"Time taken for {total_sims} simulations using SSA: {SSA_time:.2f} seconds")
+print(f"Time taken for {total_sims} simulations using Hybrid Model: {hybrid_time:.2f} seconds")
+
+
+
 
 fig, (ax1,ax2) = plt.subplots(1,2,figsize = (15,6))
 
@@ -47,7 +57,7 @@ ax1.plot(timegrid, I_stochastic, label='SSA Infected', color='green')
 
 ax2.plot(timegrid,DI_vector, label = 'Discrete Infected',color = 'red')
 ax2.plot(timegrid,CI_vector, label = 'Continuous Infected', color = 'blue')
-ax2.plot(timegrid,HI_vector, 'r--',label = 'Combined', color = 'black')
+ax2.plot(timegrid,HI_vector, '--',label = 'Combined', color = 'black')
 ax2.plot(timegrid,hybrid_model.T1_vector,'--', label = 'Threshold T1', color = 'grey')
 
 # Adding labels

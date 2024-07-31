@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import tqdm
+import time 
 
 class SISimulation:
     def __init__(self, S0=400, I0=2, k1=0.002, k2=0.1, tf=50, dt=0.1):
@@ -204,8 +205,14 @@ class SISimulation:
         Returns:
         tuple: Time series of S, I from deterministic model, and averaged states from stochastic model.
         """
+        ODE_start_time = time.time()
         S, I = self.run_deterministic_simulation()
+        self.total_ODE_time = time.time() - ODE_start_time
+
+        SSA_start_time = time.time()
         data_table_cum = self.run_gillespie_simulation(total_simulations=total_simulations)
+        self.total_SSA_time = time.time() - SSA_start_time
+
         S_stochastic  = data_table_cum[:, 0]
         I_stochastic = data_table_cum[:,1]
 
