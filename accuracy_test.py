@@ -1,11 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Modelling import HybridModel, SISimulation
+from Modelling import HybridModel, SISimulation, SISimulation_Mean
 import tqdm
 
 
 # Parameters for the simulation
-DS_0 = 100       # Initial number of discrete Infected individuals
+DS_0 = 150       # Initial number of discrete Infected individuals
 CS_0 = 0        # Initial number of continuous Susceptible individuals
 CI_0 = 0        # Initial number of continuous Infected individuals
 k1 = 0.002      # Rate cons tant for infection
@@ -17,7 +17,7 @@ T2 = T1         # Threshold for converting continuous to discrete Susceptible
 gamma = 2    # Rate of conversion between discrete and continuous populations
 total_sims = 2000  # Number of simulations to run
 
-discrete_infected_vector = np.arange(1,10,1)
+discrete_infected_vector = np.arange(1,15,1)
 
 accuracy = np.zeros((len(discrete_infected_vector),3),dtype = np.float64)
 
@@ -29,7 +29,7 @@ for i in range(len(discrete_infected_vector)):
     DI_0 = discrete_infected_vector[i]
 
 
-    combined_model = SISimulation(S0=DS_0, I0=DI_0, k1=k1, k2=k2, tf=tf, dt=dt)
+    combined_model = SISimulation_Mean(S0=DS_0, I0=DI_0, k1=k1, k2=k2, tf=tf, dt=dt)
     # Run the combined model using SISimulation to get the ODE and SSA results
     S_ODE, I_ODE, S_stochastic, I_stochastic = combined_model.run_combined(total_simulations=total_sims)
 
