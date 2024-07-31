@@ -1,17 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Modelling import HybridModel, SISimulation
+from Modelling import HybridModel, SISimulation, SISimulation_Mean
 
 # Parameters for the simulation
 DS_0 = 200      # Initial number of discrete Susceptible individuals
-DI_0 = 5       # Initial number of discrete Infected individuals
+DI_0 = 1       # Initial number of discrete Infected individuals
 CS_0 = 0        # Initial number of continuous Susceptible individuals
 CI_0 = 0        # Initial number of continuous Infected individuals
 k1 = 0.002      # Rate constant for infection
 k2 = 0.1        # Rate constant for recovery
 dt = 0.2        # Time step for ODE (Ordinary Differential Equations)
 tf = 100         # Final time for the simulation
-T1 = 25         # Threshold for converting continuous to discrete Infected
+T1 = 0         # Threshold for converting continuous to discrete Infected
 T2 = T1         # Threshold for converting continuous to discrete Susceptible
 gamma = 2    # Rate of conversion between discrete and continuous populations
 
@@ -24,7 +24,10 @@ hybrid_model = HybridModel(
 )
 
 # Create an instance of the SISimulation with the specified parameters
-combined_model = SISimulation(S0=DS_0, I0=DI_0, k1=k1, k2=k2, tf=tf, dt=dt)
+
+#combined_model = SISimulation(S0=DS_0, I0=DI_0, k1=k1, k2=k2, tf=tf, dt=dt) #THe Moment closure one
+
+combined_model = SISimulation_Mean(S0=DS_0, I0=DI_0, k1=k1, k2=k2, tf=tf, dt=dt) #The mean field closure
 
 # Run multiple simulations using HybridModel to get the average results
 timegrid, DS_vector, DI_vector, CS_vector, CI_vector, HS_vector, HI_vector = hybrid_model.run_multiple(total_simulations=total_sims)
@@ -79,3 +82,30 @@ ax2.set_ylim([0,max(HI_vector.max(),I_ODE.max(),I_stochastic.max(),HI_vector.max
 # Show the
 plt.show()
 
+fig, ax = plt.subplots(figsize=(15,6))
+
+# Plot Hybrid Model results
+ax.plot(timegrid, HI_vector, '--',label='Hybrid Model: $D_I + C_I$', color='black')
+
+# Plot ODE results
+ax.plot(timegrid, I_ODE, label='ODE Infected', color='red')
+
+# Plot SSA results
+ax.plot(timegrid, I_stochastic, label='SSA Infected', color='green')
+
+# Plot Discrete and Continuous Infected results
+ax.plot(timegrid, DI_vector, label='Discrete Infected', color='red')
+ax.plot(timegrid, CI_vector, label='Continuous Infected', color='blue')
+ax.plot(timegrid, HI_vector, '--', label='Combined', color='black')
+ax.plot(timegrid, hybrid_model.T1_vector, '--', label='Threshold T1', color='grey')
+
+# Adding labels
+ax.set_xlabel('Time')
+ax.set_ylabel('Number of Infected Individuals')
+ax.legend()  # Show legend
+ax.grid(True)  # Add grid for better readability
+
+ax.set_ylim([0, max(HI_vector.max(), I_ODE.max(), I_stochastic.max(), HI_vector.max()) + 10])
+
+# Show the plot
+plt.show()
