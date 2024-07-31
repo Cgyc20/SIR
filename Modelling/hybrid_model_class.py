@@ -47,7 +47,8 @@ class HybridModel:
         self.S_vector = np.zeros((self.num_points,1),dtype = np.float64 )
         self.I_vector = np.zeros((self.num_points,1),dtype = np.float64 )
 
-
+        self.T1_vector = np.ones_like(self.timegrid)*T1
+        self.T2_vector = np.ones_like(self.timegrid)*T2
         #self.total_molecules = np.zeros((self.num_points, self.number_molecules), dtype=np.float64)  # Combined totals
 
         self.states_init = np.array([DS_0, DI_0, CS_0, CI_0], dtype=float)  # Initial states
