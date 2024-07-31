@@ -90,6 +90,7 @@ class SISimulation:
         numpy array: Averaged states over all simulations.
         """
         data_table_cum = np.zeros((self.num_points, self.number_molecules), dtype=np.float64)
+        print("Running multiple simulations of the SSA (Non-hybrid)...")
         for _ in tqdm.tqdm(range(total_simulations)):
             t = 0
             data_table = np.zeros((self.num_points, self.number_molecules), dtype=np.float64)
@@ -205,4 +206,7 @@ class SISimulation:
         """
         S, I = self.run_deterministic_simulation()
         data_table_cum = self.run_gillespie_simulation(total_simulations=total_simulations)
-        return S, I, data_table_cum
+        S_stochastic  = data_table_cum[:, 0]
+        I_stochastic = data_table_cum[:,1]
+
+        return S, I, S_stochastic, I_stochastic

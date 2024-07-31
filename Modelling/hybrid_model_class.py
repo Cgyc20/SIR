@@ -39,7 +39,16 @@ class HybridModel:
         self.data_table_init = np.zeros((self.num_points, 2 * self.number_molecules), dtype=np.float64)  # Matrix to store simulation results
         self.data_table_cum = np.zeros((self.num_points, 2 * self.number_molecules), dtype=np.float64)  # Cumulative simulation results
 
-        self.total_molecules = np.zeros((self.num_points, self.number_molecules), dtype=np.float64)  # Combined totals
+        self.DS_vector = np.zeros((self.num_points,1),dtype = np.float64 )
+        self.DI_vector = np.zeros((self.num_points,1),dtype = np.float64 )
+        self.CS_vector = np.zeros((self.num_points,1),dtype = np.float64 )
+        self.CI_vector = np.zeros((self.num_points,1),dtype = np.float64 )
+
+        self.S_vector = np.zeros((self.num_points,1),dtype = np.float64 )
+        self.I_vector = np.zeros((self.num_points,1),dtype = np.float64 )
+
+
+        #self.total_molecules = np.zeros((self.num_points, self.number_molecules), dtype=np.float64)  # Combined totals
 
         self.states_init = np.array([DS_0, DI_0, CS_0, CI_0], dtype=float)  # Initial states
         self.S_matrix = np.array([
@@ -202,13 +211,21 @@ class HybridModel:
         total_simulations (int): Number of simulations to run.
         
         Returns:
-        tuple: Time grid, cumulative data table, and total molecules over time.
+        tuple: Time grid, Chemical vectors DS,DI,CS,CI and combined 
         """
+        #DS,DI,CS,CI
+        print("Running multiple simulations of the Hybrid_model...")
         for i in tqdm.tqdm(range(total_simulations)):
             self.data_table_cum += self.run_simulation()
         
         self.data_table_cum /= total_simulations  # Average the results
-        self.total_molecules[:, 0] = self.data_table_cum[:, 0] + self.data_table_cum[:, 2]  # Total susceptible
-        self.total_molecules[:, 1] = self.data_table_cum[:, 1] + self.data_table_cum[:, 3]  # Total infected
+        
+        self.DS_vector = self.data_table_cum[:,0]
+        self.DI_vector = self.data_table_cum[:,1]
+        self.CS_vector = self.data_table_cum[:,2]
+        self.CI_vector = self.data_table_cum[:,3]
 
-        return self.timegrid, self.data_table_cum, self.total_molecules
+        self.S_vector = self.DS_vector + self.CS_vector
+        self.I_vector = self.DI_vector + self.CI_vector
+
+        return self.timegrid, self.DS_vector, self.DI_vector, self.CS_vector, self.CI_vector, self.S_vector, self.I_vector
