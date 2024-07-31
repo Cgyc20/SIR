@@ -34,6 +34,12 @@ class HybridModel:
         self.gamma = gamma
         self.number_molecules = 2  # Number of molecules (Susceptible, Infected)
 
+        #Kirkwood closure initial conditions
+        # self.S02 = self.S0**2
+        # self.I02 = self.I0**2
+        # self.SI0 = self.S0 * self.I0
+
+
         self.num_points = int(tf / dt) + 1  # Number of time points in the simulation
         self.timegrid = np.linspace(0, tf, self.num_points, dtype=np.float64)  # Time points
         self.data_table_init = np.zeros((self.num_points, 2 * self.number_molecules), dtype=np.float64)  # Matrix to store simulation results
@@ -155,6 +161,57 @@ class HybridModel:
         states[2] = max(rk4_result[0], 0)
         states[3] = max(rk4_result[1], 0)
         return states
+
+
+
+    # def update_ode(self, states):
+    #     """
+    #     Update the states using the ODE with RK4 method.
+        
+    #     Parameters:
+    #     states (numpy array): Current states of the system.
+        
+    #     Returns:
+    #     numpy array: Updated states after one step of the ODE is performed.
+    #     """
+
+
+    #     def differential(S, I, I2, SI, S2):
+    #         DSIDT = self.k1 * ((S2 * SI ** 2) / (I * S ** 2) - ((SI ** 2) * I2) / (S * I ** 2) - SI) - self.k2 * SI
+    #         DS2DT = self.k1 * (SI - 2 * ((SI ** 2) * S2) / (S ** 2 * I))
+    #         DI2DT = self.k1 * (2 * ((SI ** 2) * I2) / (S * I ** 2) + SI) + self.k2 * (I - 2 * I2)
+
+    #         dSdt = -self.k1 * SI
+    #         dIdt = self.k1 * SI - self.k2 * I
+
+    #         return dSdt, dIdt, DSIDT, DS2DT, DI2DT
+
+    #     def RK4(states):
+    #         _, _, S, I = states
+    #         self.I2 = I ** 2
+    #         self.SI = S * I
+            
+    #         k1_S, k1_I, k1_SI, k1_S2, k1_I2 = self.differential(S, I, self.I2, self.SI, self.S2)
+    #         k2_S, k2_I, k2_SI, k2_S2, k2_I2 = self.differential(S + k1_S * self.dt / 2, I + k1_I * self.dt / 2, self.I2 + k1_I2 * self.dt / 2, self.SI + k1_SI * self.dt / 2, self.S2 + k1_S2 * self.dt / 2)
+    #         k3_S, k3_I, k3_SI, k3_S2, k3_I2 = self.differential(S + k2_S * self.dt / 2, I + k2_I * self.dt / 2, self.I2 + k2_I2 * self.dt / 2, self.SI + k2_SI * self.dt / 2, self.S2 + k2_S2 * self.dt / 2)
+    #         k4_S, k4_I, k4_SI, k4_S2, k4_I2 = self.differential(S + k3_S * self.dt, I + k3_I * self.dt, self.I2 + k3_I2 * self.dt, self.SI + k3_SI * self.dt, self.S2 + k3_S2 * self.dt)
+        
+    #         S_next = S + self.dt * (k1_S + 2 * k2_S + 2 * k3_S + k4_S) / 6
+    #         I_next = I + self.dt * (k1_I + 2 * k2_I + 2 * k3_I + k4_I) / 6
+    #         SI_next = self.SI + self.dt * (k1_SI + 2 * k2_SI + 2 * k3_SI + k4_SI) / 6
+    #         S2_next = self.S2 + self.dt * (k1_S2 + 2 * k2_S2 + 2 * k3_S2 + k4_S2) / 6
+    #         I2_next = self.I2 + self.dt * (k1_I2 + 2 * k2_I2 + 2 * k3_I2 + k4_I2) / 6
+
+    #         return S_next, I_next, SI_next, S2_next, I2_next
+
+
+
+
+    #     rk4_result = RK4(states)
+    #     states[2] = max(rk4_result[0], 0)
+    #     states[3] = max(rk4_result[1], 0)
+    #     return states
+    
 
     def run_simulation(self):
         """
