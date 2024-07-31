@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from hybrid_model_class import HybridModel
-from combine_class import SISimulation 
+from Modelling import HybridModel, SISimulation
 
 
 DS_0 = 120  # Initial discrete Susceptible
