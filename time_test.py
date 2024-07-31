@@ -24,10 +24,6 @@ discrete_susceptible_vector = np.arange(1000,3000,200)
 time_array = np.zeros((len(discrete_susceptible_vector),3),dtype = np.float64)
 
 
-
-
-print(time_array)
-
 for i in range(len(discrete_susceptible_vector)):
     susceptible_number = discrete_susceptible_vector[i]
     print(susceptible_number)
