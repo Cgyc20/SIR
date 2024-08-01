@@ -86,10 +86,12 @@ class HybridModel:
         alpha_3 = self.k2 * DI
         alpha_4 = self.k1 * DS * CI
         # Propensities for conversion
+
         alpha_bS = self.gamma * CS if CS + DS < self.T2 else 0  # Continuous S to discrete S
-        alpha_bI = self.gamma * CI if CI + DI < self.T1 else 0  # Continuous I to discrete I
-        alpha_fS = self.gamma * DS if CS + DS >= self.T2 else 0  # Discrete S to continuous S
+        alpha_bI = self.gamma * CI if CI + DI < self.T2 else 0  # Continuous I to discrete I
+        alpha_fS = self.gamma * DS if CS + DS >= self.T1 else 0  # Discrete S to continuous S
         alpha_fI = self.gamma * DI if CI + DI >= self.T1 else 0  # Discrete I to continuous I
+
 
         return np.array([alpha_1, alpha_2, alpha_3, alpha_4, alpha_bS, alpha_bI, alpha_fS, alpha_fI])
 
