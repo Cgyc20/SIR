@@ -11,7 +11,7 @@ k1 = 0.002      # Rate constant for infection
 k2 = 0.1        # Rate constant for recovery
 dt = 0.2        # Time step for ODE (Ordinary Differential Equations)
 tf = 100         # Final time for the simulation
-T1 = 0         # Threshold for converting continuous to discrete Infected
+T1 = 10         # Threshold for converting continuous to discrete Infected
 T2 = T1         # Threshold for converting continuous to discrete Susceptible
 gamma = 2    # Rate of conversion between discrete and continuous populations
 

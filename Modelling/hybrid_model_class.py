@@ -274,11 +274,11 @@ class HybridModel:
         #DS,DI,CS,CI
         print("Running multiple simulations of the Hybrid_model...")
 
-        start_time = time.time()
+        start_time = time.perf_counter()
         for i in tqdm.tqdm(range(total_simulations)):
             self.data_table_cum += self.run_simulation()
         
-        self.total_time = time.time() - start_time
+        self.total_time = time.perf_counter() - start_time
         self.data_table_cum /= total_simulations  # Average the results
         
         self.DS_vector = self.data_table_cum[:,0]

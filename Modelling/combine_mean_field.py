@@ -188,9 +188,9 @@ class SISimulation_Mean:
         S, I = self.run_deterministic_simulation()
         self.total_ODE_time = time.time() - ODE_start_time
 
-        SSA_start_time = time.time()
+        SSA_start_time = time.perf_counter()
         data_table_cum = self.run_gillespie_simulation(total_simulations=total_simulations)
-        self.total_SSA_time = time.time() - SSA_start_time
+        self.total_SSA_time = time.perf_counter() - SSA_start_time
 
         S_stochastic  = data_table_cum[:, 0]
         I_stochastic = data_table_cum[:,1]
