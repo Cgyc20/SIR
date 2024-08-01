@@ -17,7 +17,7 @@ T2 = T1         # Threshold for converting continuous to discrete Susceptible
 gamma = 2    # Rate of conversion between discrete and continuous populations
 total_sims = 2000  # Number of simulations to run
 
-discrete_infected_vector = np.arange(1,15,1)
+discrete_infected_vector = np.arange(1,5,1)
 
 accuracy = np.zeros((len(discrete_infected_vector),3),dtype = np.float64)
 
