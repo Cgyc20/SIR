@@ -7,12 +7,11 @@ project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
     
-from Modelling import HybridModel, SISimulation, SISimulation_Mean
-import tqdm
+from Modelling import HybridModel, SISimulation_Mean #type: ignore
 
 
 # Parameters for the simulation
-DS_0 = 150       # Initial number of discrete Infected individuals
+DS_0 = 200       # Initial number of discrete Infected individuals
 CS_0 = 0        # Initial number of continuous Susceptible individuals
 CI_0 = 0        # Initial number of continuous Infected individuals
 k1 = 0.002      # Rate cons tant for infection
@@ -24,7 +23,7 @@ T2 = T1         # Threshold for converting continuous to discrete Susceptible
 gamma = 2    # Rate of conversion between discrete and continuous populations
 total_sims = 2000  # Number of simulations to run
 
-discrete_infected_vector = np.arange(1,5,1)
+discrete_infected_vector = np.arange(1,10,1) #Range of initial infected values
 
 accuracy = np.zeros((len(discrete_infected_vector),3),dtype = np.float64)
 
@@ -51,8 +50,8 @@ for i in range(len(discrete_infected_vector)):
     # Run multiple simulations using HybridModel to get the average results
     timegrid, DS_vector, DI_vector, CS_vector, CI_vector, HS_vector, HI_vector = hybrid_model.run_multiple(total_simulations=total_sims)
 
-    hybrid_error_vector = np.abs(HI_vector - I_stochastic)/np.abs(I_stochastic)
-    ODE_error = np.abs(I_ODE - I_stochastic)/np.abs(I_stochastic)
+    hybrid_error_vector = np.abs(HI_vector - I_stochastic)
+    ODE_error = np.abs(I_ODE - I_stochastic)
 
     mean_hybrid_error_vector[i] = np.mean(hybrid_error_vector)
     mean_ode_error_vector[i] = np.mean(ODE_error)
@@ -70,7 +69,7 @@ plt.plot(discrete_infected_vector, mean_ode_error_vector, marker='o', color=colo
 
 # Label the axes
 plt.xlabel('Initial number of discrete Infected individuals', fontsize=12)
-plt.ylabel('Mean relative error', fontsize=12)
+plt.ylabel('Mean error', fontsize=12)
 
 # Add title
 plt.title('Accuracy of Hybrid Model', fontsize=14)

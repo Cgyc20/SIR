@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from Modelling import HybridModelLogistic, SISimulation, SISimulation_Mean
+from Modelling import HybridModelLogistic, SISimulation_Mean
 
 # Parameters for the simulation
 DS_0 = 200     # Initial number of discrete Susceptible individuals
@@ -13,13 +13,14 @@ dt = 0.2        # Time step for ODE (Ordinary Differential Equations)
 tf = 100        # Final time for the simulation
 gamma = 1     # Rate of conversion between discrete and continuous populations
 
-Threshold_centre_infected = 20
-Threshold_centre_suceptible = 20
+Threshold_centre_infected = 20 #Threshold for infected
+Threshold_centre_suceptible = 20 #Threshold for Sucseptible
 
-intensity = 2
-gradient = 1
+intensity = 2 #Intensity of the Logistic funtion (or amplitude basically)
+gradient = 1 #The gradient of the logistic function! the greater this gradient, the sharper the conversion
 
 total_sims = 1000  # Number of simulations to run
+
 
 # Create an instance of the HybridModel with the specified parameters
 hybrid_model = HybridModelLogistic(
@@ -44,17 +45,16 @@ print(f"Time taken for {total_sims} simulations using SSA: {SSA_time:.2f} second
 print(f"Time taken for {total_sims} simulations using Hybrid Model: {hybrid_time:.2f} seconds")
 
 # Evaluate logistic function for a range of discrete infected individuals
-
-
-
 alpha_vector = np.zeros((len(timegrid), 4), dtype=np.float64)
 
 # Focus on forward reaction! i.e., from Discrete to Continuous
 for i in range(len(timegrid)):
     alpha_fI, alpha_bI, alpha_fS, alpha_bS = hybrid_model.logistic_function(DS_vector[i], DI_vector[i], CS_vector[i], CI_vector[i])
     alpha_vector[i] = [alpha_fI, alpha_bI, alpha_fS, alpha_bS]
-
 # Plot results
+
+
+
 fig, axs = plt.subplots(2, 2, figsize=(12, 8))
 
 # Top left plot: Infected comparison

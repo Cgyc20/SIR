@@ -6,11 +6,7 @@ import os
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
-
-
-from Modelling import HybridModel, SISimulation
-import tqdm
-
+from Modelling import HybridModel, SISimulation # type: ignore 
 
 # Parameters for the simulation
 
