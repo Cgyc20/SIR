@@ -5,7 +5,7 @@ import os
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
-from Modelling import HybridModel, SISimulation_Mean
+from Modelling import HybridModel, SISimulation_Mean #type: ignore
 from matplotlib.ticker import MaxNLocator
 
 
@@ -50,9 +50,7 @@ for i, T1 in enumerate(threshold_vector):
 
     # Run multiple simulations using HybridModel to get the average results
     timegrid, DS_vector, DI_vector, CS_vector, CI_vector, HS_vector, HI_vector = hybrid_model.run_multiple(total_simulations=total_sims)
-
-    # Calculate the mean hybrid error
-    #hybrid_error_vector = np.abs(HI_vector - I_stochastic) / np.abs(I_stochastic)
+    #Calculate the error
     hybrid_error_vector = np.abs(HI_vector - I_stochastic) 
 
 
