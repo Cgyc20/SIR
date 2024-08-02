@@ -4,17 +4,17 @@ from Modelling import HybridModelLogistic, SISimulation, SISimulation_Mean
 
 # Parameters for the simulation
 DS_0 = 200     # Initial number of discrete Susceptible individuals
-DI_0 = 2        # Initial number of discrete Infected individuals
+DI_0 = 3        # Initial number of discrete Infected individuals
 CS_0 = 0        # Initial number of continuous Susceptible individuals
 CI_0 = 0        # Initial number of continuous Infected individuals
 k1 = 0.002      # Rate constant for infection
 k2 = 0.1        # Rate constant for recovery
 dt = 0.2        # Time step for ODE (Ordinary Differential Equations)
 tf = 100        # Final time for the simulation
-gamma = 0.5     # Rate of conversion between discrete and continuous populations
+gamma = 1     # Rate of conversion between discrete and continuous populations
 
-Threshold_centre_infected = 50
-Threshold_centre_suceptible = 100
+Threshold_centre_infected = 20
+Threshold_centre_suceptible = 20
 
 intensity = 2
 gradient = 1
