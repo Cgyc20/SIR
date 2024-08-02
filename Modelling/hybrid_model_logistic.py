@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import random
 import tqdm
 import time
-class HybridModel:
-    def __init__(self, DS_0=400, DI_0=5, CS_0=0, CI_0=0, k1=0.002, k2=0.1, dt=0.2, tf=40, T1=40, T2=40, gamma=0.5):
+class HybridModelLogistic:
+    def __init__(self, DS_0=400, DI_0=5, CS_0=0, CI_0=0, k1=0.002, k2=0.1, dt=0.2, tf=40, threshold_centre_infected = 20, threshold_centre_susceptible = 50, gradient = 0.1, intensity = 1 , gamma=0.5):
         """
         Initialize the hybrid model with the given parameters.
         
@@ -29,22 +29,25 @@ class HybridModel:
         self.k2 = k2
         self.dt = dt
         self.tf = tf
-        self.T1 = T1
-        self.T2 = T2
-        self.gamma = gamma
         self.number_molecules = 2  # Number of molecules (Susceptible, Infected)
 
-        #Kirkwood closure initial conditions
-        # self.S02 = self.S0**2
-        # self.I02 = self.I0**2
-        # self.SI0 = self.S0 * self.I0
 
-        threshold_centre = 20
+        self.threshold_centre_infected = threshold_centre_infected
+        self.threshold_centre_susceptible = threshold_centre_susceptible
+
+
+
+        self.gradient = gradient
+        self.intensity = intensity
 
         self.num_points = int(tf / dt) + 1  # Number of time points in the simulation
         self.timegrid = np.linspace(0, tf, self.num_points, dtype=np.float64)  # Time points
         self.data_table_init = np.zeros((self.num_points, 2 * self.number_molecules), dtype=np.float64)  # Matrix to store simulation results
         self.data_table_cum = np.zeros((self.num_points, 2 * self.number_molecules), dtype=np.float64)  # Cumulative simulation results
+
+
+        self.threshold_I_vector = np.ones((self.num_points,1),dtype = np.float64 )*threshold_centre_infected
+        self.threshold_S_vector = np.ones((self.num_points,1),dtype = np.float64 )*threshold_centre_susceptible
 
         self.DS_vector = np.zeros((self.num_points,1),dtype = np.float64 )
         self.DI_vector = np.zeros((self.num_points,1),dtype = np.float64 )
@@ -53,10 +56,8 @@ class HybridModel:
 
         self.S_vector = np.zeros((self.num_points,1),dtype = np.float64 )
         self.I_vector = np.zeros((self.num_points,1),dtype = np.float64 )
+       
 
-        self.T1_vector = np.ones_like(self.timegrid)*T1
-        self.T2_vector = np.ones_like(self.timegrid)*T2
-        #self.total_molecules = np.zeros((self.num_points, self.number_molecules), dtype=np.float64)  # Combined totals
 
         self.states_init = np.array([DS_0, DI_0, CS_0, CI_0], dtype=float)  # Initial states
         self.S_matrix = np.array([
@@ -69,6 +70,25 @@ class HybridModel:
             [-1, 0, 1, 0],
             [0, -1, 0, 1]
         ], dtype=int)  # Stoichiometric matrix for reactions
+
+
+
+    def logistic_function(self,DS,DI,CS,CI):
+
+            """
+            Logistic function for the propensity calculation
+            Input: The gradient, Theeshold centre and intensity, Particle values
+            Returns: A propensity Logistic function.
+            """
+            alpha_fI = DI*self.intensity/(1+np.exp(-self.gradient*(DI-self.threshold_centre_infected))) #From discrete to continious
+            alpha_bI = CI*self.intensity/(1+np.exp(self.gradient*(CI-self.threshold_centre_infected))) #From continious back to discrete
+            
+            alpha_fS = DS*self.intensity/(1+np.exp(-self.gradient*(DS-self.threshold_centre_susceptible))) #From Discrete to continious
+            alpha_bS = CS*self.intensity/(1+np.exp(self.gradient*(CS-self.threshold_centre_susceptible)))
+            #From continious to discrete
+            
+            return alpha_fI, alpha_bI, alpha_fS, alpha_bS 
+        
 
     def compute_propensities(self, states):
         """
@@ -86,25 +106,8 @@ class HybridModel:
         alpha_2 = self.k1 * CS * DI
         alpha_3 = self.k2 * DI
         alpha_4 = self.k1 * DS * CI
-        # Propensities for conversion
-
-        def logistic_infected(threshold_centre,gradient,intensity,DI,CI):
-
-            """Logistic function for the propensity calculation"""
-            f = DI*intensity/(1+np.exp(-gradient*(DI-threshold_centre)))
-            g = CI*intensity/(1+np.exp(gradient*(CI-threshold_centre)))
-
-            return f,g
-
-
-
-
-
-        alpha_bS = self.gamma * CS if CS + DS < self.T2 else 0  # Continuous S to discrete S
-        alpha_bI = self.gamma * CI if CI + DI < self.T2 else 0  # Continuous I to discrete I
-        alpha_fS = self.gamma * DS if CS + DS >= self.T1 else 0  # Discrete S to continuous S
-        alpha_fI = self.gamma * DI if CI + DI >= self.T1 else 0  # Discrete I to continuous I
-
+        # Propensities for conversion (using logistic function)
+        alpha_fI, alpha_bI, alpha_fS, alpha_bS = self.logistic_function(DS,DI,CS,CI)
 
         return np.array([alpha_1, alpha_2, alpha_3, alpha_4, alpha_bS, alpha_bI, alpha_fS, alpha_fI])
 
@@ -290,7 +293,7 @@ class HybridModel:
         print("Running multiple simulations of the Hybrid_model...")
 
         start_time = time.perf_counter()
-        for i in tqdm.tqdm(range(total_simulations)):
+        for _ in tqdm.tqdm(range(total_simulations)):
             self.data_table_cum += self.run_simulation()
         
         self.total_time = time.perf_counter() - start_time
