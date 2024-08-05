@@ -65,5 +65,14 @@ We should in theory reduce error as the threshold of conversion is raised.
 
 
 
+## Efficiency_logistic_threshold.py
+
+This will output the time taken for each simulation for a hard vs logistic threshold. 
+
+
+## Accuracy_logistic_threshold.py
+
+THis will output the mean accuracy over time for hard threshold vs logistic threshold
+
 
 

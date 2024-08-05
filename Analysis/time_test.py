@@ -36,7 +36,7 @@ for i in range(len(discrete_susceptible_vector)):
     # Run the combined model using SISimulation to get the ODE and SSA results
     S_ODE, I_ODE, S_stochastic, I_stochastic = combined_model.run_combined(total_simulations=total_sims)
 
-    #T1 = int(max(I_stochastic)/10)
+    #T1 = int(max(I_stochastic)/10) #If you want a variable threshold
 
     T1 = 15
     T2 = T1
