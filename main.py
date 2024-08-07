@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from Modelling import HybridModel, SISimulation, SISimulation_Mean
 
 # Parameters for the simulation
-DS_0 = 500      # Initial number of discrete Susceptible individuals
+DS_0 = 300     # Initial number of discrete Susceptible individuals
 DI_0 = 1       # Initial number of discrete Infected individuals
 CS_0 = 0        # Initial number of continuous Susceptible individuals
 CI_0 = 0        # Initial number of continuous Infected individuals
@@ -11,11 +11,11 @@ k1 = 0.002      # Rate constant for infection
 k2 = 0.1        # Rate constant for recovery
 dt = 0.2        # Time step for ODE (Ordinary Differential Equations)
 tf = 100         # Final time for the simulation
-T1 = 30         # Threshold for converting continuous to discrete Infected
+T1 = 80       # Threshold for converting continuous to discrete Infected
 T2 = T1         # Threshold for converting continuous to discrete Susceptible
-gamma = 0.5    # Rate of conversion between discrete and continuous populations
+gamma = 1    # Rate of conversion between discrete and continuous populations
 
-total_sims = 100  # Number of simulations to run
+total_sims = 500  # Number of simulations to run
 
 # Create an instance of the HybridModel with the specified parameters
 hybrid_model = HybridModel(
@@ -40,10 +40,11 @@ SSA_time = combined_model.total_SSA_time
 ODE_time = combined_model.total_ODE_time
 hybrid_time = hybrid_model.total_time
 
-print(f"Time taken for {total_sims} simulations using ODE: {ODE_time:.2f} seconds")
-print(f"Time taken for {total_sims} simulations using SSA: {SSA_time:.2f} seconds")
-print(f"Time taken for {total_sims} simulations using Hybrid Model: {hybrid_time:.2f} seconds")
-
+print(
+    f"Time taken for {total_sims} simulations using ODE: {ODE_time:.4f} seconds\n"
+    f"Time taken for {total_sims} simulations using SSA: {SSA_time:.4f} seconds\n"
+    f"Time taken for {total_sims} simulations using Hybrid Model: {hybrid_time:.4f} seconds"
+)
 
 
 

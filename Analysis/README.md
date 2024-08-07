@@ -76,3 +76,7 @@ THis will output the mean accuracy over time for hard threshold vs logistic thre
 
 
 
+## Students T-test folder, 
+
+This will run the students T-test for statistical significance between runs. This is used for the threshold simulations! So error for $T_1 = 1,2,...30$ and we want to see if the error vector is statisically different relative to the one with the highest accuracy (namely $T_1$ = end)
+
