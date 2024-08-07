@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from Modelling import HybridModel, SISimulation, SISimulation_Mean
 
 # Parameters for the simulation
-DS_0 = 300     # Initial number of discrete Susceptible individuals
+DS_0 = 250     # Initial number of discrete Susceptible individuals
 DI_0 = 1       # Initial number of discrete Infected individuals
 CS_0 = 0        # Initial number of continuous Susceptible individuals
 CI_0 = 0        # Initial number of continuous Infected individuals
@@ -11,7 +11,7 @@ k1 = 0.002      # Rate constant for infection
 k2 = 0.1        # Rate constant for recovery
 dt = 0.2        # Time step for ODE (Ordinary Differential Equations)
 tf = 100         # Final time for the simulation
-T1 = 80       # Threshold for converting continuous to discrete Infected
+T1 = 19       # Threshold for converting continuous to discrete Infected
 T2 = T1         # Threshold for converting continuous to discrete Susceptible
 gamma = 1    # Rate of conversion between discrete and continuous populations
 

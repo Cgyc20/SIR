@@ -10,7 +10,7 @@ if project_root not in sys.path:
 from Modelling import HybridModel, SISimulation_Mean  # type: ignore
 
 # Parameters for the simulation
-DS_0 = 250       # Initial number of discrete Susceptible individuals
+DS_0 = 400      # Initial number of discrete Susceptible individuals
 DI_0 = 1         # Initial number of discrete Infected individuals
 CS_0 = 0         # Initial number of continuous Susceptible individuals
 CI_0 = 0         # Initial number of continuous Infected individuals
@@ -62,5 +62,7 @@ for i, T1 in enumerate(threshold_vector):
     Error_matrix[i, :] = hybrid_error_vector
 
 # Save the data matrix and threshold matrix
-np.save("Error_matrix.npy", Error_matrix)
-np.save("Threshold_vector.npy", threshold_vector)
+np.save("Error_matrix_400.npy", Error_matrix)
+np.save("Threshold_vector_400.npy", threshold_vector)
+
+
